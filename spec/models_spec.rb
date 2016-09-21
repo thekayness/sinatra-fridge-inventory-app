@@ -5,6 +5,8 @@ describe 'User' do
     @user = User.create(:username => "test 123", :email => "test123@aol.com", :password => "test")
 
     @item =  Item.create(:name => "Tomato sauce", :exp_date => "9/9/1999")
+
+    @user << @item
   end
 
 

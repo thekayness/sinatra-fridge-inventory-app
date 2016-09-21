@@ -7,7 +7,7 @@ describe ApplicationController do
     it 'loads the homepage' do
       get '/'
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to include("Welcome to Fwitter")
+      expect(last_response.body).to include("Welcome to FridgeIt")
     end
   end
 
@@ -18,14 +18,14 @@ describe ApplicationController do
       expect(last_response.status).to eq(200)
     end
 
-    it 'signup directs user to twitter index' do
+    it 'signup directs user to their fridge index' do
       params = {
         :username => "skittles123",
         :email => "skittles@aol.com",
         :password => "rainbows"
       }
       post '/signup', params
-      expect(last_response.location).to include("/tweets")
+      expect(last_response.location).to include("/fridge/#{params[:username.slug]}")
     end
 
     it 'does not let a user sign up without a username' do
@@ -69,7 +69,7 @@ describe ApplicationController do
       session = {}
       session[:id] = user.id
       get '/signup'
-      expect(last_response.location).to include('/tweets')
+      expect(last_response.location).to include("/fridge/#{params[:username].slug}")
     end
   end
 
@@ -79,7 +79,7 @@ describe ApplicationController do
       expect(last_response.status).to eq(200)
     end
 
-    it 'loads the tweets index after login' do
+    it 'loads the fridge index after login' do
       user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
       params = {
         :username => "becky567",
@@ -89,7 +89,7 @@ describe ApplicationController do
       expect(last_response.status).to eq(302)
       follow_redirect!
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to include("Welcome,")
+      expect(last_response.body).to include("Welcome,#{user.username}")
     end
 
     it 'does not let user view login page if already logged in' do
@@ -103,7 +103,7 @@ describe ApplicationController do
       session = {}
       session[:id] = user.id
       get '/login'
-      expect(last_response.location).to include("/tweets")
+      expect(last_response.location).to include("/fridge/#{user.username.slug}")
     end
   end
 
@@ -125,12 +125,12 @@ describe ApplicationController do
       expect(last_response.location).to include("/")
     end
 
-    it 'does not load /tweets if user not logged in' do
-      get '/tweets'
+    it 'does not load /fridge if user not logged in' do
+      get '/fridge'
       expect(last_response.location).to include("/login")
     end
 
-    it 'does load /tweets if user is logged in' do
+    it 'does load /fridge if user is logged in' do
       user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
 
 
@@ -139,55 +139,23 @@ describe ApplicationController do
       fill_in(:username, :with => "becky567")
       fill_in(:password, :with => "kittens")
       click_button 'submit'
-      expect(page.current_path).to eq('/tweets')
+      expect(page.current_path).to eq("/fridge/#{user.username.slug}")
 
 
     end
   end
 
-  describe 'user show page' do
-    it 'shows all a single users tweets' do
+  describe 'user fridge page' do
+    it 'shows all a single users fridge items' do
       user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-      tweet1 = Tweet.create(:content => "tweeting!", :user_id => user.id)
-      tweet2 = Tweet.create(:content => "tweet tweet tweet", :user_id => user.id)
-      get "/users/#{user.slug}"
-      expect(last_response.body).to include("tweeting!")
-      expect(last_response.body).to include("tweet tweet tweet")
+      item1 = Item.create(:name => "Cheese", :user_id => user.id)
+      item2 = Item.create(:name => "Watermelon", :user_id => user.id)
+      get "/users/#{user.username.slug}"
+      expect(last_response.body).to include("Cheese")
+      expect(last_response.body).to include("Watermelon")
 
     end
   end
-
-  describe 'index action' do
-    context 'logged in' do
-      it 'lets a user view the tweets index if logged in' do
-        user1 = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-        tweet1 = Tweet.create(:content => "tweeting!", :user_id => user1.id)
-
-        user2 = User.create(:username => "silverstallion", :email => "silver@aol.com", :password => "horses")
-        tweet2 = Tweet.create(:content => "look at this tweet", :user_id => user2.id)
-
-        visit '/login'
-
-        fill_in(:username, :with => "becky567")
-        fill_in(:password, :with => "kittens")
-        click_button 'submit'
-        visit "/tweets"
-        expect(page.body).to include(tweet1.content)
-        expect(page.body).to include(tweet2.content)
-      end
-    end
-
-
-    context 'logged out' do
-      it 'does not let a user view the tweets index if not logged in' do
-        get '/tweets'
-        expect(last_response.location).to include("/login")
-      end
-    end
-
-  end
-
-
 
   describe 'new action' do
     context 'logged in' do
