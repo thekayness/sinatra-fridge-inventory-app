@@ -4,6 +4,7 @@ class CreateItemsTable < ActiveRecord::Migration
       t.string :name
       t.string :exp_date
       t.string :category
+      t.integer :servings
     end
   end
 end

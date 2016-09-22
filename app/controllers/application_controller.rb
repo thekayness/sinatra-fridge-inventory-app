@@ -1,10 +1,11 @@
 class ApplicationController < Sinatra::Base
-  register Sinatra::ActiveRecordExtension
-  enable :sessions
-  set :session_secret, "wat_1"
-  set :views, Proc.new { File.join(root, "../views/") }
 
-  use Rack::Flash
+  configure do
+    register Sinatra::ActiveRecordExtension
+    enable :sessions
+    set :session_secret, "wat_1"
+    set :views, 'app/views'
+  end
 
   get '/' do
     erb :index

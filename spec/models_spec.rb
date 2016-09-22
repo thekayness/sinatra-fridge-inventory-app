@@ -3,7 +3,12 @@ require 'spec_helper'
 describe 'User' do
   before do
     @user = User.create(:username => "test 123", :email => "test123@aol.com", :password => "test")
+
+    item =  Item.create(:name => "Tomato sauce", :exp_date => "9/9/1999", :category => "Sauces", :servings => 2)
+
+    @user.items << item
   end
+
   it 'can slug the username' do
     expect(@user.slug).to eq("test-123")
   end
@@ -12,6 +17,11 @@ describe 'User' do
     slug = @user.slug
     expect(User.find_by_slug(slug).username).to eq("test 123")
   end
+
+  it "can have many items" do
+    expect(@user.items.count).to eq(1)
+  end
+
 
   it 'has a secure password' do
 
@@ -25,7 +35,7 @@ describe "item" do
   before do
     user = User.create(:username => "test 123", :email => "test123@aol.com", :password => "test")
 
-    @item =  Item.create(:name => "Tomato sauce", :exp_date => "9/9/1999", :category => "Sauces")
+    @item =  Item.create(:name => "Tomato sauce", :exp_date => "9/9/1999", :category => "Sauces", :servings => 2)
 
     @item.user_ids << user.id
   end
@@ -44,6 +54,10 @@ describe "item" do
 
   it "can have a category" do
     expect(@item.category) to eq("Sauces")
+  end
+
+  it "can have a number of servings" do
+    expect(@item.servings) to eq(2)
   end
 
   it "can have many users" do
