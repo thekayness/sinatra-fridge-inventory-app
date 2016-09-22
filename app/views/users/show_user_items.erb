@@ -1,0 +1,7 @@
+<h2>Here's everything in your fridge, <%=@user.username%></h2>
+
+  <%@items.each do |item|%>
+  <h4>Food item: <%=item.name%></h4>
+  <h4>Expiration date: <%=item.exp_date%></h4>
+  <h4>Category: <%=item.category%></h4>
+  <%end%>

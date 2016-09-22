@@ -3,13 +3,7 @@ require 'spec_helper'
 describe 'User' do
   before do
     @user = User.create(:username => "test 123", :email => "test123@aol.com", :password => "test")
-
-    @item =  Item.create(:name => "Tomato sauce", :exp_date => "9/9/1999")
-
-    @user << @item
   end
-
-
   it 'can slug the username' do
     expect(@user.slug).to eq("test-123")
   end
@@ -28,6 +22,13 @@ describe 'User' do
 end
 
 describe "item" do
+  before do
+    user = User.create(:username => "test 123", :email => "test123@aol.com", :password => "test")
+
+    @item =  Item.create(:name => "Tomato sauce", :exp_date => "9/9/1999", :category => "Sauces")
+
+    @item.user_ids << user.id
+  end
 
   it "can initialize a item" do
     expect(Item.new).to be_an_instance_of(Item)
@@ -39,6 +40,10 @@ describe "item" do
 
   it "can have an expiration date" do
     expect(@item.exp_date).to eq("9/9/1999")
+  end
+
+  it "can have a category" do
+    expect(@item.category) to eq("Sauces")
   end
 
   it "can have many users" do
