@@ -148,18 +148,22 @@ describe ApplicationController do
   describe 'user fridge page' do
     it 'shows all a single users fridge items' do
       user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-      item1 = Item.create(:name => "Cheese", :user_id => user.id)
-      item2 = Item.create(:name => "Watermelon", :user_id => user.id)
+      item1 = Item.create(:name => "Cheese")
+      item2 = Item.create(:name => "Watermelon")
+      item1.user_ids << user.id
+      item2.user_ids << user.id
       get "/users/#{user.username.slug}"
       expect(last_response.body).to include("Cheese")
       expect(last_response.body).to include("Watermelon")
 
     end
+
+    #"has links to edit and delete each item"
   end
 
   describe 'new action' do
     context 'logged in' do
-      it 'lets user view new tweet form if logged in' do
+      it 'lets user view new item form if logged in' do
         user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
 
         visit '/login'
@@ -167,12 +171,12 @@ describe ApplicationController do
         fill_in(:username, :with => "becky567")
         fill_in(:password, :with => "kittens")
         click_button 'submit'
-        visit '/tweets/new'
+        visit '/fridge/new_item'
         expect(page.status_code).to eq(200)
 
       end
 
-      it 'lets user create a tweet if they are logged in' do
+      it 'lets user create an item if they are logged in' do
         user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
 
         visit '/login'
@@ -181,41 +185,18 @@ describe ApplicationController do
         fill_in(:password, :with => "kittens")
         click_button 'submit'
 
-        visit '/tweets/new'
-        fill_in(:content, :with => "tweet!!!")
+        visit '/fridge/new_item'
+        fill_in(:name, :with => "Yogurt")
         click_button 'submit'
 
         user = User.find_by(:username => "becky567")
-        tweet = Tweet.find_by(:content => "tweet!!!")
-        expect(tweet).to be_instance_of(Tweet)
-        expect(tweet.user_id).to eq(user.id)
+        item = Item.find_by(:name => "Yogurt")
+        expect(item).to be_instance_of(Item)
+        expect(item.user_ids).to include(user.id)
         expect(page.status_code).to eq(200)
       end
 
-      it 'does not let a user tweet from another user' do
-        user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-        user2 = User.create(:username => "silverstallion", :email => "silver@aol.com", :password => "horses")
-
-        visit '/login'
-
-        fill_in(:username, :with => "becky567")
-        fill_in(:password, :with => "kittens")
-        click_button 'submit'
-
-        visit '/tweets/new'
-
-        fill_in(:content, :with => "tweet!!!")
-        click_button 'submit'
-
-        user = User.find_by(:id=> user.id)
-        user2 = User.find_by(:id => user2.id)
-        tweet = Tweet.find_by(:content => "tweet!!!")
-        expect(tweet).to be_instance_of(Tweet)
-        expect(tweet.user_id).to eq(user.id)
-        expect(tweet.user_id).not_to eq(user2.id)
-      end
-
-      it 'does not let a user create a blank tweet' do
+      it 'does not let a user create an item with no name' do
         user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
 
         visit '/login'
@@ -224,79 +205,49 @@ describe ApplicationController do
         fill_in(:password, :with => "kittens")
         click_button 'submit'
 
-        visit '/tweets/new'
+        visit '/fridge/new_item'
 
-        fill_in(:content, :with => "")
+        fill_in(:name, :with => "")
         click_button 'submit'
 
-        expect(Tweet.find_by(:content => "")).to eq(nil)
-        expect(page.current_path).to eq("/tweets/new")
+        expect(Item.find_by(:name => "")).to eq(nil)
+        expect(page.current_path).to eq("/fridge/new_item")
 
       end
     end
 
     context 'logged out' do
-      it 'does not let user view new tweet form if not logged in' do
-        get '/tweets/new'
+      it 'does not let user view new item form if not logged in' do
+        get '/fridge/new_item'
         expect(last_response.location).to include("/login")
       end
     end
-
-  describe 'show action' do
-    context 'logged in' do
-      it 'displays a single tweet' do
-
-        user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-        tweet = Tweet.create(:content => "i am a boss at tweeting", :user_id => user.id)
-
-        visit '/login'
-
-        fill_in(:username, :with => "becky567")
-        fill_in(:password, :with => "kittens")
-        click_button 'submit'
-
-        visit "/tweets/#{tweet.id}"
-        expect(page.status_code).to eq(200)
-        expect(page.body).to include("Delete Tweet")
-        expect(page.body).to include(tweet.content)
-        expect(page.body).to include("Edit Tweet")
-      end
-    end
-
-    context 'logged out' do
-      it 'does not let a user view a tweet' do
-        user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-        tweet = Tweet.create(:content => "i am a boss at tweeting", :user_id => user.id)
-        get "/tweets/#{tweet.id}"
-        expect(last_response.location).to include("/login")
-      end
-    end
-  end
-
-
   end
 
   describe 'edit action' do
     context "logged in" do
-      it 'lets a user view tweet edit form if they are logged in' do
+      it 'lets a user view item edit form if they are logged in' do
         user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-        tweet = Tweet.create(:content => "tweeting!", :user_id => user.id)
+        item = Item.create(:name => "Butter")
+        item.user_items << user.id
         visit '/login'
 
         fill_in(:username, :with => "becky567")
         fill_in(:password, :with => "kittens")
         click_button 'submit'
-        visit '/tweets/1/edit'
+        visit "/fridge/#{item.name.slug}/edit"
         expect(page.status_code).to eq(200)
-        expect(page.body).to include(tweet.content)
+        expect(page.body).to include(item.name)
       end
 
-      it 'does not let a user edit a tweet they did not create' do
+      it 'does not let a user edit an item that is not in their fridge' do
         user1 = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-        tweet1 = Tweet.create(:content => "tweeting!", :user_id => user1.id)
+        item1 = Item.create(:name => "Cheese")
+        item1.user_ids << user1.id
 
         user2 = User.create(:username => "silverstallion", :email => "silver@aol.com", :password => "horses")
-        tweet2 = Tweet.create(:content => "look at this tweet", :user_id => user2.id)
+        item2 = Item.create(:name => "Half and half")
+        item2.user_items << user2.id
 
         visit '/login'
 
