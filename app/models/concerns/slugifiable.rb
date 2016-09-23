@@ -15,7 +15,11 @@ module Slugify
 
   module InstanceMethod
     def slug
-      strip_chars_array = self.username.downcase.scan(/[a-z0-9]+/)
+      if self.respond_to?(:username)
+        strip_chars_array = self.username.downcase.scan(/[a-z0-9]+/)
+      else
+        strip_chars_array = self.name.downcase.scan(/[a-z0-9]+/)
+      end
       slug = strip_chars_array.join("-")
     end
   end

@@ -1,0 +1,18 @@
+<h2>Welcome, <%=current_user.username%></h2>
+<h3>Here's everything in your fridge!</h3>
+
+  <%@items.each do |item|%>
+  <h4>Food item: <%=item.name%></h4>
+  <h4>Expiration date: <%=item.exp_date%></h4>
+  <h4>Category: <%=item.category%></h4>
+  <h4>Number of servings: <%=item.servings%></h4>
+  <a href="/fridge/<%=item.slug%>/edit">Edit Item</a>
+  <form method="post" action="/fridge/<%=item.id %>/delete">
+    <input id="hidden" type="hidden" name="_method" value="DELETE">
+    <input type="submit" value="Delete Item">
+  </form>
+  <%end%>
+
+  <br></br>
+  <a href="/fridge/new_item" id="new_item">Add an item to your fridge!</a>
+  <a href="/logout">Log out</a>

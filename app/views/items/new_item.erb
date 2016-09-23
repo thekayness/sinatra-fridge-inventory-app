@@ -1,0 +1,9 @@
+<h2>Create a new item to put in your fridge</h2>
+
+<form action="/user/<%=@user.slug%>" method="POST">
+  <input type="text" name="name" placeholder="What is it?">
+  <input type="text" name="exp_date" placeholder="When does it expire?">
+  <input type="text" name="category" placeholder="What kind of food?">
+  <input type="text" name="servings" placeholder="How many servings?">
+  <input type="submit" value="submit" id="submit">
+</form>

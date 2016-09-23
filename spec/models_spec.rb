@@ -37,7 +37,7 @@ describe "item" do
 
     @item =  Item.create(:name => "Tomato sauce", :exp_date => "9/9/1999", :category => "Sauces", :servings => 2)
 
-    @item.user_ids << user.id
+    user.items << @item
   end
 
   it "can initialize a item" do
@@ -53,15 +53,15 @@ describe "item" do
   end
 
   it "can have a category" do
-    expect(@item.category) to eq("Sauces")
+    expect(@item.category).to eq("Sauces")
   end
 
   it "can have a number of servings" do
-    expect(@item.servings) to eq(2)
+    expect(@item.servings).to eq(2)
   end
 
   it "can have many users" do
-    expect(UserItems.count).to eq(1)
+    expect(UserItem.count).to eq(1)
   end
 
   it "can slugify its name" do

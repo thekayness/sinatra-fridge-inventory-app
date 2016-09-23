@@ -12,16 +12,20 @@ describe ApplicationController do
   end
 
   describe "Signup Page" do
-
     it 'loads the signup page' do
       get '/signup'
       expect(last_response.status).to eq(200)
     end
 
     it 'signup directs user to their fridge index' do
-      user = User.create(:username "skittles123", :email "skittles@aol.com", :password "rainbows")
+      user = User.create(:username => "skittles123", :email => "skittles@aol.com", :password => "rainbows")
+      params = {
+        :username => "skittles123",
+        :email => "skittles@aol.com",
+        :password => "rainbows"
+      }
       post '/signup', params
-      expect(last_response.location).to include("/fridge/#{user.slug}")
+      expect(last_response.location).to include("/user/#{user.slug}")
     end
 
     it 'does not let a user sign up without a username' do
@@ -65,7 +69,7 @@ describe ApplicationController do
       session = {}
       session[:id] = user.id
       get '/signup'
-      expect(last_response.location).to include("/fridge/#{user.slug}")
+      expect(last_response.location).to include("/user/#{user.slug}")
     end
   end
 
@@ -85,7 +89,7 @@ describe ApplicationController do
       expect(last_response.status).to eq(302)
       follow_redirect!
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to include("Welcome,#{user.username}")
+      expect(last_response.body).to include("Welcome, #{user.username}")
     end
 
     it 'does not let user view login page if already logged in' do
@@ -97,9 +101,10 @@ describe ApplicationController do
       }
       post '/login', params
       session = {}
-      session[:id] = user.id
+      session[:user_id] = user.id
       get '/login'
-      expect(last_response.location).to include("/fridge/#{user.slug}")
+
+      expect(last_response.location).to include("/user/#{user.slug}")
     end
   end
 
@@ -114,8 +119,8 @@ describe ApplicationController do
       post '/login', params
       get '/logout'
       expect(last_response.location).to include("/login")
-
     end
+
     it 'does not let a user logout if not logged in' do
 
       get '/logout'
@@ -124,7 +129,7 @@ describe ApplicationController do
 
     it 'does not load user fridge page if user not logged in' do
       user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-      get "/fridge/#{user.slug}"
+      get "/user/#{user.slug}"
       expect(last_response.location).to include("/login")
     end
 
@@ -137,7 +142,7 @@ describe ApplicationController do
       fill_in(:username, :with => "becky567")
       fill_in(:password, :with => "kittens")
       click_button 'submit'
-      expect(page.current_path).to eq("/fridge/#{user.slug}")
+      expect(page.current_path).to eq("/user/#{user.slug}")
     end
   end
 
@@ -146,19 +151,33 @@ describe ApplicationController do
       user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
       item1 = Item.create(:name => "Cheese")
       item2 = Item.create(:name => "Watermelon")
-      item1.user_ids << user.id
-      item2.user_ids << user.id
-      get "/fridge/#{user.slug}"
-      expect(last_response.body).to include("Cheese")
-      expect(last_response.body).to include("Watermelon")
+      user.items << item1
+      user.items << item2
+
+      visit '/login'
+
+      fill_in(:username, :with => "becky567")
+      fill_in(:password, :with => "kittens")
+
+      click_button 'submit'
+      expect(page.current_path).to eq("/user/#{user.slug}")
+
+      expect(page.body).to include("Cheese")
+      expect(page.body).to include("Watermelon")
     end
 
     it "has a link to create new item" do
       user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
-      get "/fridge/#{user.slug}"
-      expect(last_response.body).to include("<a href='/fridge/new_item'")
 
-    #"has links to edit and delete each item"
+      visit '/login'
+
+      fill_in(:username, :with => "becky567")
+      fill_in(:password, :with => "kittens")
+
+      click_button 'submit'
+      expect(page.current_path).to eq("/user/#{user.slug}")
+      expect(page.body).to include("<a href=\"/fridge/new_item\"")
+    end
   end
 
   describe 'new action' do
@@ -171,8 +190,8 @@ describe ApplicationController do
         fill_in(:username, :with => "becky567")
         fill_in(:password, :with => "kittens")
         click_button 'submit'
-        visit "/fridge/new_item"        expect(page.status_code).to eq(200)
-
+        visit "/fridge/new_item"
+        expect(page.status_code).to eq(200)
       end
 
       it 'lets user create an item if they are logged in' do
@@ -184,14 +203,15 @@ describe ApplicationController do
         fill_in(:password, :with => "kittens")
         click_button 'submit'
 
-        visit '/fridge/new_item'
+        click_link('new_item')
         fill_in(:name, :with => "Yogurt")
         click_button 'submit'
 
         user = User.find_by(:username => "becky567")
         item = Item.find_by(:name => "Yogurt")
+        #binding.pry
         expect(item).to be_instance_of(Item)
-        expect(item.user_ids).to include(user.id)
+        expect(user.items).to include(item)
         expect(page.status_code).to eq(200)
       end
 
@@ -204,21 +224,20 @@ describe ApplicationController do
         fill_in(:password, :with => "kittens")
         click_button 'submit'
 
-        visit '/fridge/new_item'
+        visit "/fridge/new_item"
 
         fill_in(:name, :with => "")
         click_button 'submit'
 
         expect(Item.find_by(:name => "")).to eq(nil)
         expect(page.current_path).to eq("/fridge/new_item")
-
       end
     end
 
     context 'logged out' do
       it 'does not let user view new item form if not logged in' do
         get '/fridge/new_item'
-        expect(last_response.location).to include("/login")
+        expect(last_response.location).to include("/")
       end
     end
   end
@@ -228,7 +247,7 @@ describe ApplicationController do
       it 'lets a user view item edit form if they are logged in' do
         user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
         item = Item.create(:name => "Butter")
-        item.user_items << user.id
+        user.items << item
         visit '/login'
 
         fill_in(:username, :with => "becky567")
@@ -247,7 +266,7 @@ describe ApplicationController do
         fill_in(:username, :with => "becky567")
         fill_in(:password, :with => "kittens")
         click_button 'submit'
-        visit "/fridge/#{user.slug}/#{item.slug}/edit"
+        visit "/fridge/#{item.slug}/edit"
 
         fill_in(:name, :with => "Large eggs")
 
@@ -258,6 +277,22 @@ describe ApplicationController do
         expect(page.status_code).to eq(200)
       end
 
+      it 'shows the original values that the user is editing' do
+        user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
+        item = Item.create(:name => "Eggs", :exp_date => "haloween", :category => "Breakfast", :servings => 3)
+        visit '/login'
+
+        fill_in(:username, :with => "becky567")
+        fill_in(:password, :with => "kittens")
+        click_button 'submit'
+        visit "/fridge/#{item.slug}/edit"
+        expect(page.body).to include(item.name)
+        expect(page.body).to include(item.category)
+        expect(page.body).to include(item.exp_date)
+        expect(page.body).to include(item.servings)
+      end
+
+
       it 'does not let a user edit an item with no name' do
         user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
         item = Item.create(:name => "Salami")
@@ -266,20 +301,20 @@ describe ApplicationController do
         fill_in(:username, :with => "becky567")
         fill_in(:password, :with => "kittens")
         click_button 'submit'
-        visit "/fridge/#{user.slug}/#{item.slug}/edit"
+        visit "/fridge/#{item.slug}/edit"
 
-        fill_in(:content, :with => "")
+        fill_in(:name, :with => "")
 
         click_button 'submit'
         expect(Item.find_by(:name => "Mangos")).to be(nil)
-        expect(page.current_path).to eq("/fridge/#{user.slug}/#{item.slug}/edit")
+        expect(page.current_path).to eq("/fridge/#{item.slug}/edit")
 
       end
     end
 
     context "logged out" do
       it 'does not load let user view item edit form if not logged in' do
-        get "/fridge/#{user.slug}/#{item.slug}/edit"
+        get "/fridge/#{item.slug}/edit"
         expect(last_response.location).to include("/login")
       end
     end
