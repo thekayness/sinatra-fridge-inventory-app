@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FridgeIt</title>
+</head>
+  <body>
+    <h2>Welcome, becky567</h2>
+<h3>Here's everything in your fridge!</h3>
+
+  
+  <h4>Food item: Large eggs</h4>
+  <h4>Expiration date: </h4>
+  <h4>Category: </h4>
+  <h4>Number of servings: </h4>
+  <a href="/fridge/large-eggs/edit">Edit Item</a>
+  <form method="post" action="/fridge/1/delete">
+    <input id="hidden" type="hidden" name="_method" value="delete">
+    <button type="submit" id="Delete Item">Delete Item</button>
+  </form>
+  
+
+  <br></br>
+  <a href="/fridge/new_item" id="new_item">Add an item to your fridge!</a>
+  <a href="/logout">Log out</a>
+
+  </body>
+</html>

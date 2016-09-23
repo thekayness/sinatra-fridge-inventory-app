@@ -35,17 +35,13 @@ class ItemsController < ApplicationController
   end
 
   patch '/fridge/:item_id' do
-    item = Item.find(params[:item_id])
-    if logged_in? && params[:check] || !params[:name].empty?
-      if params[:name].empty? && params[:check][:name].empty?
-        redirect to "fridge/#{item.slug}/edit"
-      else
-        item.update(name: params[:check][:name] ||= params[:name], exp_date: params[:check][:date] ||= params[:exp_date], category: params[:check][:category] ||= params[:category], servings: params[:check][:servings] ||= params[:servings] )
-        item.save
-        redirect to "/user/#{current_user.slug}"
-      end
+    @item = Item.find(params[:item_id])
+    if logged_in? && !params[:name].empty?
+      @item.update(name: params[:name], exp_date: params[:exp_date], category: params[:category], servings:  params[:servings] )
+      @item.save
+      redirect to "/user/#{current_user.slug}"
     elsif logged_in?
-      redirect to "fridge/#{item.slug}/edit"
+      redirect to "fridge/#{@item.slug}/edit"
       #flash must enter value or keep the same
     else
       redirect to '/'
