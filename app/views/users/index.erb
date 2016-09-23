@@ -8,8 +8,8 @@
   <h4>Number of servings: <%=item.servings%></h4>
   <a href="/fridge/<%=item.slug%>/edit">Edit Item</a>
   <form method="post" action="/fridge/<%=item.id %>/delete">
-    <input id="hidden" type="hidden" name="_method" value="DELETE">
-    <input type="submit" value="Delete Item">
+    <input id="hidden" type="hidden" name="_method" value="delete">
+    <button type="submit" id="Delete Item">Delete Item</button>
   </form>
   <%end%>
 
