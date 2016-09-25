@@ -1,18 +1,26 @@
+<h2><%=@message%></h2>
 <h2>Edit item: <%=@item.name%></h2>
-
 <form action="/fridge/<%=@item.id%>" method="POST">
   <label>Original name: <%=@item.name%></label>
-  <input type="checkbox" name="check[name]" value="<%=@item.name%>">Keep name the same<br>
+  <input type="checkbox" name="name[check_name]" value="<%=@item.name%>">Keep name the same<br>
   <input type="text" name="name" placeholder="What is it, really?">
+  <br></br>
+  <br></br>
   <label>Original expiration date:  <%=@item.exp_date%></label>
-  <input type="checkbox" name="check[date]" value="<%=@item.exp_date%>">Keep date the same<br>
+  <input type="checkbox" name="exp_date[check_exp_date]" value="<%=@item.exp_date%>" id="datepicker">Keep date the same<br>
   <input type="text" name="exp_date" placeholder="When does it actually expire?">
+  <br></br>
+  <br></br>
   <label>Original category: <%=@item.category%></label>
-  <input type="checkbox" name="check[category]" value="<%=@item.category%>">Keep category the same<br>
+  <input type="checkbox" name="category[check_category]" value="<%=@item.category%>">Keep category the same<br>
   <input type="text" name="category" placeholder="New category?">
+  <br></br>
+  <br></br>
   <label>Original servings: <%=@item.servings%></label>
-  <input type="checkbox" name="check[servings]" value="<%=@item.servings%>">Keep category the same<br>
-  <input type="text" name="servings" placeholder="Less  servings?">
+  <input type="checkbox" name="servings[check_servings]" value="<%=@item.servings%>">Keep category the same<br>
+  <input type="text" name="servings" placeholder="Did you use some up?">
+  <br></br>
+  <br></br>
   <input id="hidden" type="hidden" name="_method" value="patch">
   <input type="submit" value="submit" id="submit">
 </form>

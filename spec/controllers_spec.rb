@@ -130,7 +130,7 @@ describe ApplicationController do
     it 'does not load user fridge page if user not logged in' do
       user = User.create(:username => "becky567", :email => "starz@aol.com", :password => "kittens")
       get "/user/#{user.slug}"
-      expect(last_response.location).to include("/login")
+      expect(last_response.location).to include("/")
     end
 
     it 'does load user fridge page if user is logged in' do

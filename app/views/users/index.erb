@@ -1,12 +1,24 @@
+
+
 <h2>Welcome, <%=current_user.username%></h2>
+<%if current_user.items.empty?%>
+<h3>Would you like to </h3><a href="/fridge/new_item" id="new_item">add an item to your fridge?</a>
+
+<%else%>
+<% if flash.has?(:message) %>
+  <h1><%= flash[:message] %></h1>
+<% end %>
 <h3>Here's everything in your fridge!</h3>
+
 
   <%@items.each do |item|%>
   <h4>Food item: <%=item.name%></h4>
   <h4>Expiration date: <%=item.exp_date%></h4>
   <h4>Category: <%=item.category%></h4>
   <h4>Number of servings: <%=item.servings%></h4>
-  <a href="/fridge/<%=item.slug%>/edit">Edit Item</a>
+  <form action="/fridge/<%=item.slug%>/edit" method="get">
+    <button type="submit" id="Edit">Edit Item</button>
+  </form>
   <form method="post" action="/fridge/<%=item.id %>/delete">
     <input id="hidden" type="hidden" name="_method" value="delete">
     <button type="submit" id="Delete Item">Delete Item</button>
@@ -15,4 +27,5 @@
 
   <br></br>
   <a href="/fridge/new_item" id="new_item">Add an item to your fridge!</a>
+  <%end%>
   <a href="/logout">Log out</a>

@@ -39,6 +39,7 @@ class UsersController < ApplicationController
       session[:user_id] = @user.id
       redirect "/user/#{@user.slug}"
     else
+      flash[:message] = "Username or password was incorrect."
       redirect '/login'
     end
   end
@@ -46,6 +47,7 @@ class UsersController < ApplicationController
   get '/logout' do
     if logged_in?
       session.clear
+      flash[:message] = "Successfully logged out."
       redirect '/login'
     else
       redirect to '/'
@@ -57,7 +59,8 @@ class UsersController < ApplicationController
       @items = current_user.items
       erb :'/users/index'
     else
-      redirect to '/login'
+      flash[:message] = "You must be logged in to see this page."
+      redirect to '/'
     end
   end
 
